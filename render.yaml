@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: smart-receptionist-backend
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: SR_MODE
+        value: mock
+      - key: SR_SMTP_HOST
+        sync: false
+      - key: SR_SMTP_PORT
+        value: 587
+      - key: SR_SMTP_SECURITY
+        value: starttls
+      - key: SR_SMTP_USERNAME
+        sync: false
+      - key: SR_SMTP_PASSWORD
+        sync: false
+      - key: SR_SMTP_FROM
+        sync: false
+      - key: SR_API_KEY
+        generateValue: true
+      - key: SR_COMPANY_NAME
+        value: Founders Foundation
+      - key: SR_TIMEZONE
+        value: Europe/Berlin
