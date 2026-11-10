@@ -1,0 +1,378 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>How Norra Works</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one wide system figure (people → robot → office server → outside services), then plain-language strips below */
+:root {
+  --bg: #f5f7f8;
+  --surface: #ffffff;
+  --fg: #16232b;
+  --muted: #55656f;
+  --line: #8a9aa4;
+  --robot: #0d7a6f;       /* the robot and its app */
+  --robot-soft: #e2f3f0;
+  --server: #4a4fb5;      /* the office server */
+  --server-soft: #e8e9fb;
+  --outside: #b8650d;     /* services we connect to */
+  --outside-soft: #fbefe1;
+  --people: #3d4f5a;
+  --people-soft: #e9eef1;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171c; --surface: #17222a; --fg: #e4ecf0; --muted: #9aabb5; --line: #6b7d88;
+    --robot: #4cc9b8; --robot-soft: #12302c; --server: #9da2f5; --server-soft: #22244a;
+    --outside: #f0a952; --outside-soft: #3a2812; --people: #b7c6cf; --people-soft: #1f2c34;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171c; --surface: #17222a; --fg: #e4ecf0; --muted: #9aabb5; --line: #6b7d88;
+  --robot: #4cc9b8; --robot-soft: #12302c; --server: #9da2f5; --server-soft: #22244a;
+  --outside: #f0a952; --outside-soft: #3a2812; --people: #b7c6cf; --people-soft: #1f2c34;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 48px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(28px, 4vw, 42px); line-height: 1.1; }
+h2 { font-size: 22px; }
+p { margin: 0; }
+.lede { max-width: 66ch; color: var(--muted); font-size: 17px; }
+header { display: grid; gap: 12px; }
+.eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--robot); font-weight: 600; }
+section { display: grid; gap: 18px; }
+.section-head { display: grid; gap: 6px; }
+.section-head p { color: var(--muted); max-width: 70ch; }
+code, .folder { font-family: var(--mono); font-size: 12px; }
+
+/* main figure */
+.figure { background: var(--surface); border: 1px solid color-mix(in srgb, var(--line) 35%, transparent); border-radius: 14px; padding: 16px; overflow-x: auto; }
+.figure svg { display: block; width: 100%; min-width: 820px; height: auto; }
+svg text { font-family: var(--body); }
+.t-zone { font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.t-big { font-family: var(--display); font-size: 21px; font-weight: 700; fill: var(--fg); }
+.t-sub { font-size: 12.5px; fill: var(--muted); }
+.t-title { font-size: 14px; font-weight: 600; fill: var(--fg); }
+.t-desc { font-size: 12px; fill: var(--muted); }
+.t-folder { font-family: var(--mono); font-size: 11.5px; }
+.t-arrow { font-size: 12px; font-weight: 500; fill: var(--muted); }
+.f-surface { fill: var(--surface); }
+.robot-box { fill: var(--robot-soft); stroke: var(--robot); stroke-width: 2; }
+.server-box { fill: var(--server-soft); stroke: var(--server); stroke-width: 2; }
+.outside-box { fill: var(--outside-soft); stroke: var(--outside); stroke-width: 1.5; }
+.people-box { fill: var(--people-soft); stroke: var(--people); stroke-width: 1.5; }
+.tile { fill: var(--surface); stroke: color-mix(in srgb, var(--line) 45%, transparent); stroke-width: 1; }
+.c-robot { fill: var(--robot); } .c-server { fill: var(--server); } .c-outside { fill: var(--outside); } .c-people { fill: var(--people); }
+.arrow { stroke: var(--line); stroke-width: 2; fill: none; }
+.arrow-head { fill: var(--line); }
+.builtin { fill: var(--surface); stroke: var(--robot); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 14px; height: 14px; border-radius: 4px; border: 2px solid; }
+
+/* journey */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; counter-reset: s; }
+.steps li { counter-increment: s; background: var(--surface); border-radius: 12px; padding: 16px; display: grid; gap: 6px; align-content: start; border-top: 4px solid var(--who); min-width: 0; }
+.steps li::before { content: "Step " counter(s); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
+.steps strong { font-size: 15px; }
+.steps p { font-size: 14px; color: var(--muted); }
+.who { font-size: 12px; font-weight: 600; color: var(--who); }
+
+/* two-up cards */
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--surface); border-radius: 12px; padding: 20px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card h3 { margin: 0; font-family: var(--display); font-size: 18px; }
+.card p { color: var(--muted); font-size: 14.5px; }
+.tag { justify-self: start; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 99px; background: var(--robot-soft); color: var(--robot); }
+.tag.alt { background: var(--outside-soft); color: var(--outside); }
+
+/* pipeline */
+.pipe { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+.pipe div { background: var(--surface); padding: 16px 18px 16px 26px; display: grid; gap: 4px; position: relative; min-width: 0; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%); margin-right: -8px; }
+.pipe div:first-child { clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); padding-left: 18px; }
+.pipe div:nth-child(even) { background: color-mix(in srgb, var(--surface) 70%, var(--robot-soft)); }
+.pipe strong { font-size: 15px; }
+.pipe p { font-size: 13.5px; color: var(--muted); padding-right: 12px; }
+
+/* repo map */
+.table-wrap { overflow-x: auto; background: var(--surface); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 12px 16px; vertical-align: top; border-bottom: 1px solid color-mix(in srgb, var(--line) 25%, transparent); }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { white-space: nowrap; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+
+@media (max-width: 900px) {
+  .steps { grid-template-columns: 1fr 1fr; }
+  .pipe { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pipe div, .pipe div:first-child { clip-path: none; margin-right: 0; border-radius: 10px; padding-left: 18px; }
+}
+@media (max-width: 560px) {
+  .steps, .pair, .pipe { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Smart Receptionist · Founders Foundation</div>
+    <h1>How Norra, our robot receptionist, is built</h1>
+    <p class="lede">Norra greets visitors, tells their host they have arrived, prints a visitor badge and walks guests to the waiting room. It does this with three parts working together: an app on the robot, a small office server, and the company tools we already use.</p>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <h2>The big picture</h2>
+      <p>Read from left to right. People talk to the robot, the robot asks the office server for help, and the server talks to Microsoft 365 and email. The grey text in each box shows where that part lives in the code repository.</p>
+    </div>
+    <div class="figure">
+      <svg viewBox="0 0 1200 600" role="img" aria-labelledby="figTitle figDesc">
+        <title id="figTitle">System overview</title>
+        <desc id="figDesc">Visitors and staff use the Norra robot. The robot app connects over Wi-Fi to the office server, which connects to Microsoft 365 and email. The robot prints badges on the office printer.</desc>
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" class="arrow-head"/>
+          </marker>
+        </defs>
+
+        <!-- zone headers -->
+        <text x="20" y="34" class="t-zone c-people">People</text>
+        <text x="240" y="34" class="t-zone c-robot">On the robot</text>
+        <text x="640" y="34" class="t-zone c-server">Office server</text>
+        <text x="950" y="34" class="t-zone c-outside">Services we connect to</text>
+
+        <!-- PEOPLE -->
+        <rect x="20" y="70" width="170" height="120" rx="12" class="people-box"/>
+        <circle cx="48" cy="100" r="11" class="c-people"/>
+        <path d="M32,128 a16,14 0 0 1 32,0 z" class="c-people"/>
+        <text x="74" y="106" class="t-title">Visitor</text>
+        <text x="34" y="152" class="t-desc">Speaks or taps the</text>
+        <text x="34" y="168" class="t-desc">screen, in German</text>
+        <text x="34" y="184" class="t-desc" dy="-2">or English</text>
+
+        <rect x="20" y="230" width="170" height="110" rx="12" class="people-box"/>
+        <rect x="34" y="246" width="30" height="20" rx="3" class="c-people"/>
+        <rect x="39" y="262" width="20" height="14" rx="1" class="f-surface" stroke="var(--people)" stroke-width="1.5"/>
+        <text x="74" y="266" class="t-title">Badge printer</text>
+        <text x="34" y="300" class="t-desc">In the lobby, on the</text>
+        <text x="34" y="316" class="t-desc">office network</text>
+
+        <rect x="20" y="380" width="170" height="130" rx="12" class="people-box"/>
+        <circle cx="48" cy="410" r="11" class="c-people"/>
+        <path d="M32,438 a16,14 0 0 1 32,0 z" class="c-people"/>
+        <text x="74" y="408" class="t-title">Reception</text>
+        <text x="74" y="425" class="t-title">staff</text>
+        <text x="34" y="462" class="t-desc">Sets up the robot on</text>
+        <text x="34" y="478" class="t-desc">a PIN-protected</text>
+        <text x="34" y="494" class="t-desc">admin screen</text>
+
+        <!-- ROBOT -->
+        <rect x="230" y="50" width="330" height="520" rx="16" class="robot-box"/>
+        <text x="250" y="86" class="t-big">Norra</text>
+        <text x="320" y="86" class="t-sub">the robot receptionist</text>
+        <text x="250" y="106" class="t-folder c-robot">Smart Receptionist app · android/</text>
+
+        <!-- robot tiles: 2 columns -->
+        <g>
+          <rect x="246" y="124" width="149" height="82" rx="9" class="tile"/>
+          <text x="258" y="148" class="t-title">Conversation</text>
+          <text x="258" y="170" class="t-desc">Listens and speaks</text>
+          <text x="258" y="186" class="t-desc">German and English</text>
+
+          <rect x="403" y="124" width="141" height="82" rx="9" class="tile"/>
+          <text x="415" y="148" class="t-title">Check-in</text>
+          <text x="415" y="170" class="t-desc">Appointment, walk-in,</text>
+          <text x="415" y="186" class="t-desc">booking, delivery</text>
+
+          <rect x="246" y="216" width="149" height="82" rx="9" class="tile"/>
+          <text x="258" y="240" class="t-title">Guide</text>
+          <text x="258" y="262" class="t-desc">Walks guests to rooms,</text>
+          <text x="258" y="278" class="t-desc">takes detours on request</text>
+
+          <rect x="403" y="216" width="141" height="82" rx="9" class="tile"/>
+          <text x="415" y="240" class="t-title">Visitor badge</text>
+          <text x="415" y="262" class="t-desc">Photo, name, host</text>
+          <text x="415" y="278" class="t-desc">and QR code</text>
+
+          <rect x="246" y="308" width="149" height="82" rx="9" class="tile"/>
+          <text x="258" y="332" class="t-title">Waiting-room story</text>
+          <text x="258" y="354" class="t-desc">Short company story</text>
+          <text x="258" y="370" class="t-desc">while guests wait</text>
+
+          <rect x="403" y="308" width="141" height="82" rx="9" class="tile"/>
+          <text x="415" y="332" class="t-title">Admin screen</text>
+          <text x="415" y="354" class="t-desc">Settings, map points,</text>
+          <text x="415" y="370" class="t-desc">visitor log</text>
+        </g>
+
+        <!-- built into the robot -->
+        <rect x="246" y="410" width="298" height="144" rx="10" class="builtin"/>
+        <text x="260" y="434" class="t-title">Built into the robot</text>
+        <text x="260" y="452" class="t-desc">Supplied by the maker (Orionstar AgentOS)</text>
+        <g>
+          <rect x="260" y="468" width="132" height="32" rx="16" class="tile"/>
+          <text x="326" y="489" class="t-desc" text-anchor="middle">Speech &amp; microphone</text>
+          <rect x="400" y="468" width="130" height="32" rx="16" class="tile"/>
+          <text x="465" y="489" class="t-desc" text-anchor="middle">AI language model</text>
+          <rect x="260" y="508" width="132" height="32" rx="16" class="tile"/>
+          <text x="326" y="529" class="t-desc" text-anchor="middle">Camera</text>
+          <rect x="400" y="508" width="130" height="32" rx="16" class="tile"/>
+          <text x="465" y="529" class="t-desc" text-anchor="middle">Map &amp; driving</text>
+        </g>
+
+        <!-- SERVER -->
+        <rect x="630" y="50" width="260" height="520" rx="16" class="server-box"/>
+        <text x="650" y="86" class="t-big">Office server</text>
+        <text x="650" y="106" class="t-folder c-server">Backend · backend/</text>
+        <g>
+          <rect x="646" y="124" width="228" height="62" rx="9" class="tile"/>
+          <text x="660" y="149" class="t-title">Who works here</text>
+          <text x="660" y="170" class="t-desc">Employee list for finding the host</text>
+
+          <rect x="646" y="196" width="228" height="62" rx="9" class="tile"/>
+          <text x="660" y="221" class="t-title">Calendars &amp; bookings</text>
+          <text x="660" y="242" class="t-desc">Is the host free? Book a slot</text>
+
+          <rect x="646" y="268" width="228" height="62" rx="9" class="tile"/>
+          <text x="660" y="293" class="t-title">Host notifications</text>
+          <text x="660" y="314" class="t-desc">"Your guest has arrived"</text>
+
+          <rect x="646" y="340" width="228" height="62" rx="9" class="tile"/>
+          <text x="660" y="365" class="t-title">Deliveries</text>
+          <text x="660" y="386" class="t-desc">Package photo, pickup reminders</text>
+
+          <rect x="646" y="412" width="228" height="62" rx="9" class="tile"/>
+          <text x="660" y="437" class="t-title">Badges &amp; QR pass</text>
+          <text x="660" y="458" class="t-desc">Valid 8 hours, then deleted</text>
+
+          <rect x="646" y="484" width="228" height="62" rx="9" class="tile"/>
+          <text x="660" y="509" class="t-title">Visitor log &amp; dashboard</text>
+          <text x="660" y="530" class="t-desc">Who visited whom, and when</text>
+        </g>
+
+        <!-- OUTSIDE -->
+        <rect x="950" y="70" width="230" height="120" rx="12" class="outside-box"/>
+        <text x="968" y="102" class="t-title">Microsoft 365</text>
+        <text x="968" y="128" class="t-desc">Staff directory and</text>
+        <text x="968" y="144" class="t-desc">calendars</text>
+        <text x="968" y="172" class="t-desc" font-style="italic">Demo data until connected</text>
+
+        <rect x="950" y="230" width="230" height="110" rx="12" class="outside-box"/>
+        <text x="968" y="262" class="t-title">Email</text>
+        <text x="968" y="288" class="t-desc">Sends messages to</text>
+        <text x="968" y="304" class="t-desc">employees</text>
+
+        <rect x="950" y="380" width="230" height="130" rx="12" class="people-box"/>
+        <circle cx="978" cy="410" r="11" class="c-people"/>
+        <path d="M962,438 a16,14 0 0 1 32,0 z" class="c-people"/>
+        <text x="1004" y="416" class="t-title">Host employee</text>
+        <text x="968" y="466" class="t-desc">Gets an email that</text>
+        <text x="968" y="482" class="t-desc">their guest is here</text>
+
+        <!-- ARROWS -->
+        <!-- visitor <-> robot -->
+        <path d="M192,130 L228,130" class="arrow" marker-start="url(#ah)" marker-end="url(#ah)"/>
+        <!-- robot -> printer -->
+        <path d="M228,285 L192,285" class="arrow" marker-end="url(#ah)"/>
+        <!-- staff -> robot -->
+        <path d="M192,445 L228,445" class="arrow" marker-end="url(#ah)"/>
+
+        <!-- robot <-> server -->
+        <path d="M562,300 L628,300" class="arrow" marker-start="url(#ah)" marker-end="url(#ah)" stroke-width="3"/>
+        <text x="595" y="284" class="t-arrow" text-anchor="middle">Wi-Fi</text>
+        <text x="595" y="324" class="t-arrow" text-anchor="middle">secured</text>
+        <text x="595" y="339" class="t-arrow" text-anchor="middle">with a key</text>
+
+        <!-- server -> M365 -->
+        <path d="M892,155 L948,155" class="arrow" marker-start="url(#ah)" marker-end="url(#ah)"/>
+        <!-- server -> email -->
+        <path d="M892,299 L948,299" class="arrow" marker-end="url(#ah)"/>
+        <!-- email -> host -->
+        <path d="M1065,342 L1065,378" class="arrow" marker-end="url(#ah)"/>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="border-color:var(--people);background:var(--people-soft)"></i>People and devices in the building</span>
+      <span><i class="sw" style="border-color:var(--robot);background:var(--robot-soft)"></i>Our robot app</span>
+      <span><i class="sw" style="border-color:var(--server);background:var(--server-soft)"></i>Our office server</span>
+      <span><i class="sw" style="border-color:var(--outside);background:var(--outside-soft)"></i>Existing company services</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>One visit, step by step</h2>
+      <p>What happens when a guest with an appointment walks in. The coloured line shows which part does the work.</p>
+    </div>
+    <ol class="steps">
+      <li style="--who: var(--people)"><strong>Guest arrives</strong><p>Norra asks "How can we help you?" The guest answers by voice or taps a button.</p><span class="who">Visitor</span></li>
+      <li style="--who: var(--robot)"><strong>Norra understands</strong><p>Detects German or English and picks up the guest's name and who they are meeting.</p><span class="who">Robot app</span></li>
+      <li style="--who: var(--server)"><strong>Host is told</strong><p>The server finds the host in the staff list and sends them an email.</p><span class="who">Office server + email</span></li>
+      <li style="--who: var(--robot)"><strong>Badge is printed</strong><p>Norra takes a photo and prints a badge with name, host and QR code.</p><span class="who">Robot app + printer</span></li>
+      <li style="--who: var(--robot)"><strong>Walk to waiting room</strong><p>Norra drives the guest to the waiting room and offers a short story about the company.</p><span class="who">Robot app</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Two robot apps in one repository</h2>
+      <p>The repository holds two separate products. They run on the same kind of robot but do not share code or settings, so both can be installed side by side.</p>
+    </div>
+    <div class="pair">
+      <div class="card">
+        <span class="tag">Main product</span>
+        <h3>Smart Receptionist (Norra)</h3>
+        <p>The full reception experience shown above: check-in, host notifications, bookings, deliveries, badges and guiding. Needs the office server.</p>
+        <span class="folder">android/ + backend/</span>
+      </div>
+      <div class="card">
+        <span class="tag alt">Spin-off for events</span>
+        <h3>Wayfinder</h3>
+        <p>A simpler guide robot for event visitors. It shows room tiles, walks people there, explains which floor a room is on, and wanders around to invite people when idle. Works on its own, without a server.</p>
+        <span class="folder">wayfinder/</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>From code to robot</h2>
+      <p>Every change is built and tested automatically. Nobody needs a developer laptop to update the robot.</p>
+    </div>
+    <div class="pipe">
+      <div><strong>Code saved on GitHub</strong><p>All code lives in one shared repository.</p></div>
+      <div><strong>Automatic build</strong><p>GitHub runs the tests and builds the app on every change.</p></div>
+      <div><strong>Download link</strong><p>A fixed link always points to the newest version.</p></div>
+      <div><strong>Installed on robot</strong><p>Staff install it; the app can also check for updates itself.</p></div>
+    </div>
+    <p style="color:var(--muted);font-size:14px;max-width:75ch">The office server runs on a laptop in the office for now. It can also run in the cloud (Render), but the free plan wipes badges and the visitor log on every update, so a paid plan with storage is needed for real use.</p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Where everything lives</h2>
+      <p>A plain-language map of the top-level folders, for anyone opening the repository.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Folder</th><th>What it is</th><th>Built with</th></tr></thead>
+        <tbody>
+          <tr><td><span class="dot" style="background:var(--robot)"></span><code>android/</code></td><td>The Norra robot app: conversation, check-in, guiding, badges, story and admin screen.</td><td>Kotlin (Android)</td></tr>
+          <tr><td><span class="dot" style="background:var(--server)"></span><code>backend/</code></td><td>The office server: staff list, calendars, emails, deliveries, badges, visitor log and a web dashboard.</td><td>Python (FastAPI)</td></tr>
+          <tr><td><span class="dot" style="background:var(--outside)"></span><code>wayfinder/</code></td><td>The separate event-guide robot app.</td><td>Kotlin (Android)</td></tr>
+          <tr><td><span class="dot" style="background:var(--line)"></span><code>.github/workflows/</code></td><td>The automatic build steps that turn code into an installable app.</td><td>GitHub Actions</td></tr>
+          <tr><td><span class="dot" style="background:var(--line)"></span><code>render.yaml</code></td><td>Optional settings for running the office server in the cloud.</td><td>Render</td></tr>
+          <tr><td><span class="dot" style="background:var(--line)"></span><code>app/</code></td><td>Sample code from the robot maker, kept for reference. Not part of the product.</td><td>Java</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+</body></html>
